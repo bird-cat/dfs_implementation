@@ -4,12 +4,18 @@
 #include <bits/stdc++.h>
 using namespace std; 
 
+enum edge_direction
+{
+    IN,
+    OUT
+};
+
 struct pair_hash
 {
-    template <class T1, class T2>
-    std::size_t operator() (const std::pair<T1, T2> &pair) const
+    template <class T1, class T2, class T3>
+    std::size_t operator() (const std::pair<std::pair<T1, T2>, T3> &pair) const
     {
-        return std::hash<T1>()(pair.first) ^ std::hash<T2>()(pair.second);
+        return std::hash<T1>()(pair.first.first) ^ std::hash<T2>()(pair.first.second);
     }
 };
   
@@ -18,8 +24,8 @@ struct pair_hash
 class Graph 
 { 
     int V;    // No. of vertices 
-    vector<int> *adj;    // adjacency arrays 
-    unordered_map< pair<int, int>, int, pair_hash> edge_idx_map;
+    vector<pair<int, enum edge_direction> > *adj;    // adjacency arrays 
+    unordered_map< pair<pair<int, int>, enum edge_direction>, int, pair_hash> edge_idx_map;
 public:
     Graph(int V);  // Constructor
     int deg(int v); // return degree of vertex v 
@@ -33,7 +39,7 @@ public:
 Graph::Graph(int V) 
 { 
     this->V = V; 
-    adj = new vector<int>[V];
+    adj = new vector<pair<int, enum edge_direction> >[V];
 } 
 
 int Graph::deg(int v)
@@ -43,10 +49,10 @@ int Graph::deg(int v)
   
 void Graph::addEdge(int v, int w) 
 { 
-    adj[v].push_back(w); // Add w to v’s list.
-    edge_idx_map[{v, w}] = adj[v].size() - 1; 
-    adj[w].push_back(v); // Add w to v’s list.
-    edge_idx_map[{w, v}] = adj[w].size() - 1; 
+    adj[v].push_back({w, OUT}); // Add w to v’s list.
+    edge_idx_map[{{v, w}, OUT}] = adj[v].size() - 1; 
+    adj[w].push_back({v, IN});
+    edge_idx_map[{{w, v}, IN}] = adj[w].size() - 1;
 }
   
 // prints all not yet visited vertices reachable from s 
@@ -63,13 +69,15 @@ void Graph::DFSUtil(int v, vector<bool> &visited)
     while (true) {
         l++;
         if (l < deg(v)) {
-            w = adj[v][(k + l + 1) % deg(v)];
+            if (adj[v][(k + l + 1) % deg(v)].second == IN)
+                continue;
+            w = adj[v][(k + l + 1) % deg(v)].first;
             if (!visited[w]) {
                 if (v == root)
                     l0 = l;
                 else if (deg(v) > 2)
                     stack.push(l);
-                k = edge_idx_map[{w, v}];
+                k = edge_idx_map[{{w, v}, IN}];
                 l = -1;
                 v = w;
                 visited[v] = true;
@@ -78,7 +86,7 @@ void Graph::DFSUtil(int v, vector<bool> &visited)
         } else {
             if (v == root)
                 break;
-            u = adj[v][k];
+            u = adj[v][k].first;
             if (u == root)
                 l = l0;
             else if (deg(u) <= 2)
@@ -88,7 +96,7 @@ void Graph::DFSUtil(int v, vector<bool> &visited)
                 l = stack.top();
                 stack.pop();
             }
-            k = (edge_idx_map[{u, v}] - (l + 1)) % deg(u);
+            k = (edge_idx_map[{{u, v}, OUT}] - (l + 1)) % deg(u);
             v = u;
         }
     }

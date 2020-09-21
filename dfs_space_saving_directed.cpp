@@ -2,7 +2,13 @@
 // a given source vertex. DFS(int s) traverses vertices 
 // reachable from s. 
 #include <bits/stdc++.h>
-using namespace std; 
+using namespace std;
+
+enum edge_direction
+{
+    IN,
+    OUT
+};
 
 struct pair_hash
 {
@@ -18,11 +24,12 @@ struct pair_hash
 class Graph 
 { 
     int V;    // No. of vertices 
-    vector<int> *adj;    // adjacency arrays 
+    vector<pair<int, enum edge_direction> > *adj;    // adjacency arrays
     unordered_map< pair<int, int>, int, pair_hash> edge_idx_map;
+
 public:
     Graph(int V);  // Constructor
-    int deg(int v); // return degree of vertex v 
+    int deg(int v); // return total degree of vertex v 
     void addEdge(int v, int w); // to add an edge to graph
     void DFS();  // prints all vertices in DFS manner 
   
@@ -33,66 +40,58 @@ public:
 Graph::Graph(int V) 
 { 
     this->V = V; 
-    adj = new vector<int>[V];
+    adj = new vector<pair<int, enum edge_direction> >[V];
 } 
 
+// return indegree(v) + outdegree(v)
 int Graph::deg(int v)
 {
     return adj[v].size();
 }
   
 void Graph::addEdge(int v, int w) 
-{ 
-    adj[v].push_back(w); // Add w to v’s list.
+{
+    adj[v].push_back({w, OUT}); // Add w to v’s list.
     edge_idx_map[{v, w}] = adj[v].size() - 1; 
-    adj[w].push_back(v); // Add w to v’s list.
-    edge_idx_map[{w, v}] = adj[w].size() - 1; 
+    adj[w].push_back({v, IN});
+    edge_idx_map[{w, v}] = adj[w].size() - 1;
 }
-  
-// prints all not yet visited vertices reachable from s 
+
+// prints all not yet visited vertices reachable from v in undirected graph
 void Graph::DFSUtil(int v, vector<bool> &visited) 
 { 
     // Create a stack for DFS 
     stack<int> stack;
-    int k = -1, l = -1, l0;
+    int k = -1, l = -1;
     int w, u;
-    
-    int root = v;
+  
     visited[v] = true;
     printf("%d ", v);
     while (true) {
         l++;
         if (l < deg(v)) {
-            w = adj[v][(k + l + 1) % deg(v)];
+            if (adj[v][(k + l + 1) % deg(v)].second == IN)
+                continue;
+            w = adj[v][(k + l + 1) % deg(v)].first;
             if (!visited[w]) {
-                if (v == root)
-                    l0 = l;
-                else if (deg(v) > 2)
-                    stack.push(l);
-                k = edge_idx_map[{w, v}];
+                stack.push(l);
+                k = edge_idx_map[{w, v}]; // adj[w][k] = v
                 l = -1;
                 v = w;
                 visited[v] = true;
                 printf("%d ", v);
             }
         } else {
-            if (v == root)
+            if (stack.empty())
                 break;
-            u = adj[v][k];
-            if (u == root)
-                l = l0;
-            else if (deg(u) <= 2)
-                l = 0;
-            else
-            {
-                l = stack.top();
-                stack.pop();
-            }
+            u = adj[v][k].first;
+            l = stack.top();
+            stack.pop();
             k = (edge_idx_map[{u, v}] - (l + 1)) % deg(u);
             v = u;
         }
     }
-} 
+}
   
 // prints all vertices in DFS manner 
 void Graph::DFS() 
@@ -120,7 +119,7 @@ int main()
     g.addEdge(6, 5); 
     g.addEdge(6, 0); 
     g.addEdge(7, 3);
-  
+    
     cout << "Following is Depth First Traversal\n"; 
     g.DFS();
     cout << endl; 

@@ -20,6 +20,7 @@ class Graph
     int V;    // No. of vertices 
     vector<int> *adj;    // adjacency arrays 
     unordered_map< pair<int, int>, int, pair_hash> edge_idx_map;
+
 public:
     Graph(int V);  // Constructor
     int deg(int v); // return degree of vertex v 
@@ -44,14 +45,13 @@ int Graph::deg(int v)
 void Graph::addEdge(int v, int w) 
 { 
     adj[v].push_back(w); // Add w to v’s list.
-    edge_idx_map[{v, w}] = adj[v].size() - 1; 
-#ifndef DIRECTED
-    adj[w].push_back(v);
-    edge_idx_map[{w, v}] = adj[w].size() - 1;
-#endif
+    edge_idx_map[{v, w}] = adj[v].size() - 1;
+    adj[w].push_back(v); // Add w to v’s list.
+    edge_idx_map[{w, v}] = adj[w].size() - 1;  
 }
-  
-// prints all not yet visited vertices reachable from s 
+
+
+// prints all not yet visited vertices reachable from v in undirected graph
 void Graph::DFSUtil(int v, vector<bool> &visited) 
 { 
     // Create a stack for DFS 
@@ -83,7 +83,7 @@ void Graph::DFSUtil(int v, vector<bool> &visited)
             v = u;
         }
     }
-} 
+}
   
 // prints all vertices in DFS manner 
 void Graph::DFS() 
