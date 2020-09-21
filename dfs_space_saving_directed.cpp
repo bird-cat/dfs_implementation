@@ -4,8 +4,12 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+<<<<<<< HEAD
 enum edge_direction
 {
+=======
+enum edge_direction {
+>>>>>>> cbacd2620d17b8b6f8adfee86cf4ea019165ab88
     IN,
     OUT
 };

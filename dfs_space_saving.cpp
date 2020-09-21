@@ -45,9 +45,13 @@ int Graph::deg(int v)
 void Graph::addEdge(int v, int w) 
 { 
     adj[v].push_back(w); // Add w to v’s list.
+<<<<<<< HEAD
     edge_idx_map[{v, w}] = adj[v].size() - 1;
     adj[w].push_back(v); // Add w to v’s list.
     edge_idx_map[{w, v}] = adj[w].size() - 1;  
+=======
+    edge_idx_map[{v, w}] = adj[v].size() - 1; 
+>>>>>>> cbacd2620d17b8b6f8adfee86cf4ea019165ab88
 }
 
 
